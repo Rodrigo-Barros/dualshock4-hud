@@ -1,9 +1,11 @@
 #!/usr/bin/python3
-import gi, cairo, evdev, os, time, sys
+import gi, cairo, evdev, os, sys
 gi.require_version("Gtk","3.0")
 from gi.repository import Gtk,GLib
 from settings import config
 from datetime import datetime
+from time import sleep
+from player import Dbus
 
 load_config=0
 
@@ -37,6 +39,9 @@ class main(Gtk.Window):
         Gtk.Window.__init__(self,Gtk.WindowType.POPUP)
         self.label = Gtk.Label()
         self.label.set_markup(messages().stylish_text)
+        self.label.set_padding(0,10)
+        self.label.set_margin_left(10)
+        self.label.set_margin_right(10)
         self.move(config["window"]["position"]["x"],config["window"]["position"]["y"])
         self.resize(200,100)
         self.connect("destroy", Gtk.main_quit)
@@ -77,17 +82,73 @@ class main(Gtk.Window):
         
 
 if __name__ == '__main__':
+    #print("Comp: " + dbuscomp.player_props["Metadata"]["mpris:artUrl"])
+    #old_player_info = Dbus()
+    #if old_player_info.player_state=="online":
+    #    old_player_info.get_player_props()
+    #    old_cover_art = old_player_info.player_props["Metadata"]["mpris:artUrl"]
+    command="python3 %s/player.py" % sys.path[0]
     while True:
+        #current_player_info = Dbus()
+        #if current_player_info.player_state=="online":
+        #    current_player_info.get_player_props()
+        #    current_cover_art = current_player_info.player_props["Metadata"]["mpris:artUrl"]
         devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
         for controller in devices:
+            controller_found=1
             if controller.active_keys() == config["notification"]["keys"]:
+                #if old_cover_art != current_cover_art:
+                #old_cover_art = current_cover_art
+                os.system("%s update &" % (command))
+                #else:
+                #    os.system("%s do_not_update" % command)
                 main()
             elif controller.active_keys() == [307, 316]:
                 os.system("echo 'power off' | bluetoothctl")
-        if devices == []:
-            #print("%s DEBUG: O controle nao foi encontrado" % datetime.now().strftime('%T'))
-            os.system("echo %s DEBUG: O controle nao foi encontrado >> %s/log" % (datetime.now().strftime('%T'),sys.path[0] ))
-            exit(1)
-        time.sleep(config["scan-timeout"])
+            elif controller.active_keys() == [304, 316]:
+                os.system("xdotool key XF86AudioPlay")
+        try:
+            for event in controller.read_loop():
 
-    
+                if event.type == evdev.ecodes.ABS_RY or event.type == evdev.ecodes.ABS_RX or event.type == evdev.ecodes.EV_KEY:
+                    
+                    #print( evdev.categorize(event).event )
+                    #print("%s %s" %(evdev.categorize(event),event.value))
+                    
+                    #Left Stick
+
+                    if event.code == 0:
+
+                        if event.value <= 30 and controller.active_keys() == [316]:
+                            print("LS_X LEFT %s" % event.value)
+                            os.system("xdotool key XF86AudioPrev")
+
+                        if event.value >= 235 and controller.active_keys() == [316]:
+                            os.system("xdotool key XF86AudioNext")
+                            print("LS_X RIGHT %s" % event.value)
+                            
+
+                    if event.code == 1:    
+                        while event.value <= 100 and controller.active_keys() == [316]:
+                            print("LS_Y UP %s" % event.value)
+                            sleep(.1)
+                            os.system("xdotool key XF86AudioRaiseVolume")
+                            for event2 in controller.read_loop():
+                                event.value = event2.value
+                                break
+                        while event.value >= 200 and controller.active_keys() == [316]:
+                            sleep(.1)
+                            print("LS_Y DOWN %s" % event.value)
+                            os.system("xdotool key XF86AudioLowerVolume")
+                            for event2 in controller.read_loop():
+                                event.value = event2.value
+                                break
+                    break
+        except OSError:
+            if controller_found == 1:
+                    os.system("notify-send -i info 'Controle desligado'")
+                    exit(0)
+        except NameError:
+            os.system("echo %s DEBUG: O controle nao foi encontrado >> %s/log" % (datetime.now().strftime('%T'),sys.path[0] ))
+            os.system("notify-send -i info 'o controle não foi encontrado'")
+            exit(1)
