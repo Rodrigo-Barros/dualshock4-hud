@@ -91,14 +91,11 @@ def get_cover_art_url():
     dbus.get_player_props()
     return dbus.player_props["Metadata"]["mpris:artUrl"]
 
-        
+def log(msg):
+    os.system("echo %s DEBUG: %s >> %s/log" % (datetime.now().strftime('%T'), msg, sys.path[0] ))
 
 if __name__ == '__main__':
-    #print("Comp: " + dbuscomp.player_props["Metadata"]["mpris:artUrl"])
-    #old_player_info = Dbus()
-    #if old_player_info.player_state=="online":
-    #    old_player_info.get_player_props()
-    #    old_cover_art = old_player_info.player_props["Metadata"]["mpris:artUrl"]
+   
     command="python3 %s/player.py" % sys.path[0]
 
     old_cover_art = get_cover_art_url()
@@ -111,13 +108,12 @@ if __name__ == '__main__':
             if controller.active_keys() == config["notification"]["keys"]:
                 current_cover_art = get_cover_art_url()
                 if old_cover_art != current_cover_art:
-                    print("diferentes: old:%s new:%s" % (old_cover_art, current_cover_art))
+                    log("Baixando nova arte de capa" % (old_cover_art, current_cover_art))
                     old_cover_art = get_cover_art_url()
                     os.system("%s update &" % command)
                 else:
-                    print("iguais: old:%s new:%s" % (old_cover_art, current_cover_art))
                     os.system("%s do_not_update &" % command)
-
+                    lof("Exibindo a arte de capa já baixada")
                 main()
             elif controller.active_keys() == [307, 316]:
                 os.system("echo 'disconnect %s' | bluetoothctl >> /dev/null" % bluetooth_id)
@@ -128,25 +124,20 @@ if __name__ == '__main__':
 
                 if event.type == evdev.ecodes.ABS_RY or event.type == evdev.ecodes.ABS_RX or event.type == evdev.ecodes.EV_KEY:
                     
-                    #print( evdev.categorize(event).event )
-                    #print("%s %s" %(evdev.categorize(event),event.value))
-                    
-                    #Left Stick
-
                     if event.code == 0:
 
                         if event.value <= 30 and controller.active_keys() == [316]:
-                            print("LS_X LEFT %s" % event.value)
+                            log("LS_X LEFT %s" % event.value)
                             os.system("xdotool key XF86AudioPrev")
 
                         if event.value >= 235 and controller.active_keys() == [316]:
                             os.system("xdotool key XF86AudioNext")
-                            print("LS_X RIGHT %s" % event.value)
+                            log("LS_X RIGHT %s" % event.value)
                             
 
                     if event.code == 1:    
                         while event.value <= 100 and controller.active_keys() == [316]:
-                            print("LS_Y UP %s" % event.value)
+                            log("LS_Y UP %s" % event.value)
                             sleep(.1)
                             os.system("xdotool key XF86AudioRaiseVolume")
                             for event2 in controller.read_loop():
@@ -154,7 +145,7 @@ if __name__ == '__main__':
                                 break
                         while event.value >= 200 and controller.active_keys() == [316]:
                             sleep(.1)
-                            print("LS_Y DOWN %s" % event.value)
+                            log("LS_Y DOWN %s" % event.value)
                             os.system("xdotool key XF86AudioLowerVolume")
                             for event2 in controller.read_loop():
                                 event.value = event2.value
@@ -162,10 +153,11 @@ if __name__ == '__main__':
                     break
         except OSError:
             if controller_found == 1:
-                    os.system("notify-send -i info 'Controle desligado'")
-                    os.system("echo %s DEBUG: O controle foi desligado >> %s/log" % (datetime.now().strftime('%T'),sys.path[0] ))
+                    os.system("notify-send --hint int:transient:1 -i info 'Controle desligado'")
+                    log("O controle foi desligado")
                     exit(0)
         except NameError:
-            os.system("echo %s DEBUG: O controle nao foi encontrado >> %s/log" % (datetime.now().strftime('%T'),sys.path[0] ))
-            os.system("notify-send -i info 'o controle não foi encontrado'")
+            log("O controle nao foi encontrado")
+            os.system("nnotify-send --hint int:transient:1 -i info 'O controle não foi encontrado'")
+            log("O controle não foi encontrado")
             exit(1)

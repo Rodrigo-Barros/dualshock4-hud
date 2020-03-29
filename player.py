@@ -37,7 +37,8 @@ class Window(Gtk.Window):
         self.label.set_hexpand(True)
         self.label.set_margin_bottom(10)
         self.label.set_line_wrap(True)
-        
+
+        self.art_album.set_padding(10,10)
 
         self.grid = Gtk.Grid()
         self.grid.add(self.art_album)
@@ -100,7 +101,9 @@ class Window(Gtk.Window):
             self.art_album = self.set_image("%s/icons/no-media.png" % script_path,112,112)
             return "Nenhum player Foi Encontrado"
         except (ValueError,urllib.error.HTTPError):
-            return "Anúncio ? | informação não disponível"
+            self.play_pause_icon=self.set_image("%s/icons/pause.png" % script_path,130,130)
+            self.art_album = self.set_image("%s/icons/no-media.png" % script_path,112,112)
+            return "Anúncio | informação não disponível"
 
 
 class Dbus:

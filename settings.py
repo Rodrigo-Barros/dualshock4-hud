@@ -20,7 +20,7 @@ config = {
         }
     },
     'player':{
-        'background-color':[27,40,56, 1],
+        'background-color':[27,40,56, .95],
         'window':{
                 'position':{
                     'x':15,
