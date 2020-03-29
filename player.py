@@ -9,8 +9,12 @@ import sys
 import os
 import cairo
 from settings import config
+from datetime import datetime
 
 script_path = sys.path[0]
+
+def log(msg):
+    os.system("echo %s DEBUG: %s >> %s/log" % (datetime.now().strftime('%T'), msg, sys.path[0] ))
 
 class Window(Gtk.Window):
     def __init__(self):
@@ -28,15 +32,12 @@ class Window(Gtk.Window):
         
 
         self.label = Gtk.Label()
-        #self.label.set_label(self.format_metadata())
         self.label.set_markup(self.stilysh_text(self.format_metadata(), config['player']['font']['size'], config['player']['font']['color']))
 
         self.label.set_hexpand(True)
         self.label.set_margin_bottom(10)
         self.label.set_line_wrap(True)
         
-        self.art_album.set_padding(0,10)
-        self.art_album.set_margin_left(10)
 
         self.grid = Gtk.Grid()
         self.grid.add(self.art_album)
@@ -57,18 +58,13 @@ class Window(Gtk.Window):
         for i in range(len(player_background) - 1):
             player_background[i] = (player_background[i]/256)
         
-        print(player_background)
-            
-
         context.set_source_rgba(player_background[0], player_background[1], player_background[2], player_background[3])
         context.set_operator(cairo.OPERATOR_SOURCE)
         context.paint()
         context.set_operator(cairo.OPERATOR_OVER)
 
-
-
     def stilysh_text(self,text,font_size=10,color='#fff'):
-        return '<span font="%s" color="%s">%s</span>' % (font_size, color, text)
+        return '<span font="%s" color="%s">%s</span>' % (font_size, color, text.replace('&','&amp;'))
     
     def set_image(self,path,width=60,height=60):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
@@ -82,16 +78,13 @@ class Window(Gtk.Window):
         try:
             dbus = Dbus()
             dbus.get_player_props()
-            
-            print(sys.argv)
 
-            if (sys.argv[1]=="update"):
-                print("Fazendo Download da arte de capa")
+            if (sys.argv[1]=="update"): 
+                log("Fazendo Download da arte de capa")
                 cover_art_id=dbus.player_props["Metadata"]["mpris:artUrl"].split("/").pop()
-                print("Url da imagem: https://i.scdn.co/image/%s" % cover_art_id)
                 urllib.request.urlretrieve("https://i.scdn.co/image/%s" % cover_art_id, "%s/artalbum" % script_path)
             elif (sys.argv[1]=="do_not_update"):
-                print("continuando a exibir a capa antiga")
+                log("continuando a exibir a capa antiga")
                 
             self.art_album = self.set_image("%s/artalbum" % script_path,128,128)
             artist = dbus.player_props["Metadata"]["xesam:artist"][0]
@@ -116,11 +109,11 @@ class Dbus:
         self.player_state="offline"
         for service in bus.list_names():
             if re.match('org.mpris.MediaPlayer2',service):
+                # stop at first entry with espcified pattern 
                 self.player_state="online"
                 self.player=dbus.SessionBus().get_object(service, '/org/mpris/MediaPlayer2')
                 self.property_interface = dbus.Interface(self.player, dbus_interface='org.freedesktop.DBus.Properties')
                 self.player_dbus_request_name = service
-                # stop at first entry with espcified pattern 
                 break
 
     def get_player_props(self):

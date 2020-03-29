@@ -1,1 +1,1 @@
-ACTION=="add", SUBSYSTEM=="hid",ENV{HID_UNIQ}=="1c:66:6d:55:e3:ea",RUN+="/bin/su @user -c '@script_path/start &>> @script_path/log'"
+ACTION=="add", SUBSYSTEM=="hid",ENV{HID_UNIQ}=="1c:66:6d:55:e3:ea",RUN+="/bin/su rodrigo -c '/home/rodrigo/Documentos/contrib/GitHub/dualshock4-hud/start &>> /home/rodrigo/Documentos/contrib/GitHub/dualshock4-hud/log'"

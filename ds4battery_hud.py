@@ -22,7 +22,7 @@ class messages():
             'low':'Low Baterry'
         }
         self.plain_text  = '  Hora:%s Bateria:%s%% \n%s' % (self.current_time, battery,self.get_status_battery(battery))
-        self.stylish_text = '<span font="%s" color="%s">%s</span>' % (config['font']['size'], config['font']['color'], self.plain_text)
+        self.stylish_text = '<span font="%s" color="%s">%s</span>' % (config['bat_sts']['font']['size'], config['bat_sts']['font']['color'], self.plain_text)
 
     def get_status_battery(self,level):
         if level == 100:
@@ -32,11 +32,7 @@ class messages():
         elif level <= 50:
             return self.battery_status['half']
         elif level < 50:
-            return self.battery_status['low']
-
-    def log(self,msg):
-        print ("%s DEBUG: %s >> %s/log" % (datetime.now().strftime('%T'), msg ,sys.path[0] ))
-        
+            return self.battery_status['low']        
 
 class main(Gtk.Window):
     def __init__(self):
@@ -47,7 +43,7 @@ class main(Gtk.Window):
         self.label.set_padding(0,10)
         self.label.set_margin_left(10)
         self.label.set_margin_right(10)
-        self.move(config["window"]["position"]["x"],config["window"]["position"]["y"])
+        self.move(config['bat_sts']["window"]["position"]["x"],config['bat_sts']["window"]["position"]["y"])
         self.resize(200,100)
         self.connect("destroy", Gtk.main_quit)
         self.connect("draw",self.draw)
@@ -83,11 +79,11 @@ class main(Gtk.Window):
         global load_config
         if load_config == 0:
             load_config = 1
-            self.background_color = config["background-color"]
+            self.background_color = config["bat_sts"]["background-color"]
             for i in range(3):
                 self.background_color[i] = self.background_color[i]/256
         else:
-            self.background_color = config["background-color"]
+            self.background_color = config["bat_sts"]["background-color"]
 
 
 def get_cover_art_url():
