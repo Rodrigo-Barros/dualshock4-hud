@@ -81,12 +81,9 @@ class Window(Gtk.Window):
             dbus.get_player_props()
 
             if (sys.argv[1]=="update"): 
-                log("Fazendo Download da arte de capa")
                 cover_art_id=dbus.player_props["Metadata"]["mpris:artUrl"].split("/").pop()
                 urllib.request.urlretrieve("https://i.scdn.co/image/%s" % cover_art_id, "%s/artalbum" % script_path)
-            elif (sys.argv[1]=="do_not_update"):
-                log("continuando a exibir a capa antiga")
-                
+                            
             self.art_album = self.set_image("%s/artalbum" % script_path,128,128)
             artist = dbus.player_props["Metadata"]["xesam:artist"][0]
             music = dbus.player_props["Metadata"]["xesam:title"]

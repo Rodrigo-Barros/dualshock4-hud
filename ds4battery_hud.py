@@ -108,12 +108,12 @@ if __name__ == '__main__':
             if controller.active_keys() == config["notification"]["keys"]:
                 current_cover_art = get_cover_art_url()
                 if old_cover_art != current_cover_art:
-                    log("Baixando nova arte de capa" % (old_cover_art, current_cover_art))
+                    log("Baixando nova arte de capa")
                     old_cover_art = get_cover_art_url()
                     os.system("%s update &" % command)
                 else:
                     os.system("%s do_not_update &" % command)
-                    lof("Exibindo a arte de capa já baixada")
+                    log("Exibindo a arte de capa já baixada")
                 main()
             elif controller.active_keys() == [307, 316]:
                 os.system("echo 'disconnect %s' | bluetoothctl >> /dev/null" % bluetooth_id)
