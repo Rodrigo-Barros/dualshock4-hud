@@ -4,7 +4,6 @@ export DISPLAY=:0
 #export DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 #export PYTHONPATH=/home/rodrigo/.local/lib/python2.7/site-packages
 #export XAUTHORITY=/home/rodrigo/.Xauthority
-date +"%T DEBUG: Script executado pelo udev como usuario $USER" >> /home/rodrigo/Documentos/contrib/GitHub/dualshock4-hud/log
-python3 /home/rodrigo/Documentos/contrib/GitHub/dualshock4-hud/ds4battery_hud.py >> /home/rodrigo/Documentos/contrib/GitHub/dualshock4-hud/log
+date +"%T DEBUG: Script executado pelo udev como usuario $USER" >> @script_path/log
+python3 @script_path/ds4battery_hud.py >> @script_path/log
 } &
-
