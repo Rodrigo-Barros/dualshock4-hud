@@ -7,6 +7,7 @@ import dbus
 import urllib.request
 import sys
 import os
+import cairo
 from settings import config
 
 script_path = sys.path[0]
@@ -21,8 +22,15 @@ class Window(Gtk.Window):
         self.play_pause_icon.set_hexpand(True)
         self.play_pause_icon.set_margin_top(10)
 
+
+        self.connect("draw",self.draw)
+        self.set_app_paintable(True)
+        
+
         self.label = Gtk.Label()
-        self.label.set_label(self.format_metadata())
+        #self.label.set_label(self.format_metadata())
+        self.label.set_markup(self.stilysh_text(self.format_metadata(), config['player']['font']['size'], config['player']['font']['color']))
+
         self.label.set_hexpand(True)
         self.label.set_margin_bottom(10)
         self.label.set_line_wrap(True)
@@ -35,8 +43,32 @@ class Window(Gtk.Window):
         self.grid.attach(self.play_pause_icon,1,0,1,1)
         self.grid.attach_next_to(self.label,self.art_album,Gtk.PositionType.BOTTOM,2,1)
 
+
+        self.screen = self.get_screen()
+        self.visual = self.screen.get_rgba_visual()
+        if self.visual and self.screen.is_composited():
+            self.set_visual(self.visual)
+
         self.add(self.grid)
         self.show_all()
+
+    def draw(self,widget,context):
+        player_background=config['player']['background-color']
+        for i in range(len(player_background) - 1):
+            player_background[i] = (player_background[i]/256)
+        
+        print(player_background)
+            
+
+        context.set_source_rgba(player_background[0], player_background[1], player_background[2], player_background[3])
+        context.set_operator(cairo.OPERATOR_SOURCE)
+        context.paint()
+        context.set_operator(cairo.OPERATOR_OVER)
+
+
+
+    def stilysh_text(self,text,font_size=10,color='#fff'):
+        return '<span font="%s" color="%s">%s</span>' % (font_size, color, text)
     
     def set_image(self,path,width=60,height=60):
         pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
@@ -50,10 +82,17 @@ class Window(Gtk.Window):
         try:
             dbus = Dbus()
             dbus.get_player_props()
+            
+            print(sys.argv)
 
             if (sys.argv[1]=="update"):
                 print("Fazendo Download da arte de capa")
-                urllib.request.urlretrieve(dbus.player_props["Metadata"]["mpris:artUrl"],"%s/artalbum" % script_path)
+                cover_art_id=dbus.player_props["Metadata"]["mpris:artUrl"].split("/").pop()
+                print("Url da imagem: https://i.scdn.co/image/%s" % cover_art_id)
+                urllib.request.urlretrieve("https://i.scdn.co/image/%s" % cover_art_id, "%s/artalbum" % script_path)
+            elif (sys.argv[1]=="do_not_update"):
+                print("continuando a exibir a capa antiga")
+                
             self.art_album = self.set_image("%s/artalbum" % script_path,128,128)
             artist = dbus.player_props["Metadata"]["xesam:artist"][0]
             music = dbus.player_props["Metadata"]["xesam:title"]
@@ -67,7 +106,7 @@ class Window(Gtk.Window):
             self.play_pause_icon=self.set_image("%s/icons/pause.png" % script_path,130,130)
             self.art_album = self.set_image("%s/icons/no-media.png" % script_path,112,112)
             return "Nenhum player Foi Encontrado"
-        except ValueError:
+        except (ValueError,urllib.error.HTTPError):
             return "Anúncio ? | informação não disponível"
 
 
@@ -83,14 +122,13 @@ class Dbus:
                 self.player_dbus_request_name = service
                 # stop at first entry with espcified pattern 
                 break
-      
-
 
     def get_player_props(self):
         player_props = {}
         for property, value in self.property_interface.GetAll('org.mpris.MediaPlayer2.Player').items():
             player_props[property] = value
         self.player_props = player_props
+
 if __name__ == '__main__':
     Window()
     Gtk.main()

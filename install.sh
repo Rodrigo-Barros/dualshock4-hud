@@ -15,7 +15,12 @@ function install_rule(){
 	python3 -m pip install -r requirements.txt --user
 	sudo cp "01-baterry_hud.rules" "/etc/udev/rules.d/01-baterry_hud.rules"
 	sudo udevadm control --reload-rules
+	echo "Desabilitando o Bluetooth ..."
 	echo power off | bluetoothctl
+	echo "Ligando o Bluetooth novamente ..."
+	echo power on | bluetoothctl
+	echo "Instalação concluída com sucesso"
+	echo "Para começar a utilizar é necessário apenas conectar o seu controle via Bluetooth"
 }
 
 
@@ -33,7 +38,7 @@ if [ $(get_error_code) == 0 ];then
 	done 
 	#arquivo de leitura do nivel de bateria do controle
 	echo atulizando o arquivo de configuração:
-	sed -E "s|\/sys.+(')|$controller_path/capacity'|g" -i ds4battery-hud.py
+	#sed -E "s|\/sys.+(')|$controller_path/capacity'|g" -i ds4battery-hud.py
 	
 	echo -e "
 	Esse script oferece a opção de hot reload, mas você pode estar se perguntando o que é isso?

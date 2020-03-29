@@ -34,6 +34,10 @@ class messages():
         elif level < 50:
             return self.battery_status['low']
 
+    def log(self,msg):
+        print ("%s DEBUG: %s >> %s/log" % (datetime.now().strftime('%T'), msg ,sys.path[0] ))
+        
+
 class main(Gtk.Window):
     def __init__(self):
         self.convert_background()
