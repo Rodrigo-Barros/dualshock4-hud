@@ -5,7 +5,7 @@ from gi.repository import Gtk,GLib
 from settings import config
 from datetime import datetime
 from time import sleep
-from player import Dbus
+from player import Dbus, dbus
 
 load_config=0
 bluetooth_id="1c:66:6d:55:e3:ea"
@@ -98,82 +98,88 @@ if __name__ == '__main__':
    
     command="python3 %s/player.py" % sys.path[0]
     Player=Dbus()
-    old_cover_art = get_cover_art_url(Player.player_state)
+    old_cover_art = get_cover_art_url(Player.player_state) or "none"
     first_time_open_app = 1
 
     while True:
 
-        devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-        for controller in devices:
-            controller_found=1
-            sleep(config['scan-timeout'])
-            if controller.active_keys() == config["notification"]["keys"]:
-                current_cover_art = get_cover_art_url(Player.player_state)
-
-                #Resolve o bug que exibe capas antigas na primeira inicialização
-                if first_time_open_app==1:
-                    first_time_open_app=0
-                    os.system("%s update &" % command)
-                    log("Baixando nova arte de capa")
-                    continue
-
-                if old_cover_art != current_cover_art:
-                    log("Baixando nova arte de capa")
-                    old_cover_art = current_cover_art
-                    current_cover_art = get_cover_art_url(Player.player_state)
-                    os.system("%s update &" % command)
-                    sleep(config['scan-timeout'])
-                elif current_cover_art == -1:
-                    #bug com o anúncio do spotify
-                    log("Nenhum Player Foi encontrado")
-                    os.system("%s do_not_update &" % command)
-                    sleep(config['scan-timeout'])
-                else:
-                    os.system("%s do_not_update &" % command)
-                    log("Exibindo a arte de capa já baixada")
-                    sleep(config['scan-timeout'])
-                main()
-            elif controller.active_keys() == [307, 316]:
-                os.system("echo 'disconnect %s' | bluetoothctl >> /dev/null" % bluetooth_id)
-                log("Desconectando o Controle")
-            elif controller.active_keys() == [304, 316]:
-                os.system("xdotool key XF86AudioPlay")
-                log("Enviando Play/Pause para o Player")
         try:
-            for event in controller.read_loop():
 
-                if event.type == evdev.ecodes.ABS_RY or event.type == evdev.ecodes.ABS_RX or event.type == evdev.ecodes.EV_KEY:
-                    
-                    if event.code == 0:
+            devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+            for controller in devices:
+                controller_found=1
+                sleep(config['scan-timeout'])
+                if controller.active_keys() == config["notification"]["keys"]:
+                    Player = Dbus()
+                    if Player.player_state=="online":
+                        current_cover_art = get_cover_art_url(Player.player_state)
 
-                        if event.value <= 30 and controller.active_keys() == [316]:
-                            #log("LS_X LEFT %s" % event.value)
-                            log("Retornando para a música anterior")
-                            os.system("xdotool key XF86AudioPrev")
+                        #log("old %s current %s" % (old_cover_art,current_cover_art))
+                        #Resolve o bug que exibe capas antigas na primeira inicialização
+                        if first_time_open_app==1:
+                            first_time_open_app=0
+                            os.system("%s update &" % command)
+                            log("Baixando nova arte de capa")
+                            main()
+                            continue
 
-                        if event.value >= 235 and controller.active_keys() == [316]:
-                            #log("LS_X RIGHT %s" % event.value)
-                            log("Passando para a próxima música")
-                            os.system("xdotool key XF86AudioNext")
+                        if old_cover_art != current_cover_art:
+                            log("Baixando nova arte de capa")
+                            old_cover_art = current_cover_art
+                            current_cover_art = get_cover_art_url(Player.player_state)
+                            os.system("%s update &" % command)
+                            sleep(config['scan-timeout'])
+                        else:
+                            os.system("%s do_not_update &" % command)
+                            log("Exibindo a arte de capa já baixada")
+                            sleep(config['scan-timeout'])
+                    else:
+                        log("Nenhum Player foi encontrado")
+                        os.system("%s do_not_update &" % command)
+                        sleep(config['scan-timeout'])
+                    main()
+                elif controller.active_keys() == [307, 316]:
+                    os.system("echo 'disconnect %s' | bluetoothctl >> /dev/null" % bluetooth_id)
+                    log("Desconectando o Controle")
+                elif controller.active_keys() == [304, 316]:
+                    os.system("xdotool key XF86AudioPlay")
+                    log("Enviando Play/Pause para o Player")
+                    sleep(config['scan-timeout'])
+            
+                for event in controller.read_loop():
 
-                    if event.code == 1:    
-                        while event.value <= 100 and controller.active_keys() == [316]:
-                            #log("LS_Y UP %s" % event.value)
-                            log("Aumentando o volume")
-                            sleep(config["scan-timeout"])
-                            os.system("xdotool key XF86AudioRaiseVolume")
-                            for event2 in controller.read_loop():
-                                event.value = event2.value
-                                break
-                        while event.value >= 200 and controller.active_keys() == [316]:
-                            sleep(config["scan-timeout"])
-                            #log("LS_Y DOWN %s" % event.value)
-                            log("Dimuinuindo o volume")
-                            os.system("xdotool key XF86AudioLowerVolume")
-                            for event2 in controller.read_loop():
-                                event.value = event2.value
-                                break
-                    break
+                    if event.type == evdev.ecodes.ABS_RY or event.type == evdev.ecodes.ABS_RX or event.type == evdev.ecodes.EV_KEY:
+                        
+                        if event.code == 0:
+
+                            if event.value <= 30 and controller.active_keys() == [316]:
+                                #log("LS_X LEFT %s" % event.value)
+                                log("Retornando para a música anterior")
+                                os.system("xdotool key XF86AudioPrev")
+
+                            if event.value >= 235 and controller.active_keys() == [316]:
+                                #log("LS_X RIGHT %s" % event.value)
+                                log("Passando para a próxima música")
+                                os.system("xdotool key XF86AudioNext")
+
+                        if event.code == 1:    
+                            while event.value <= 100 and controller.active_keys() == [316]:
+                                #log("LS_Y UP %s" % event.value)
+                                log("Aumentando o volume")
+                                sleep(config["scan-timeout"])
+                                os.system("xdotool key XF86AudioRaiseVolume")
+                                for event2 in controller.read_loop():
+                                    event.value = event2.value
+                                    break
+                            while event.value >= 200 and controller.active_keys() == [316]:
+                                sleep(config["scan-timeout"])
+                                #log("LS_Y DOWN %s" % event.value)
+                                log("Diminuindo o volume")
+                                os.system("xdotool key XF86AudioLowerVolume")
+                                for event2 in controller.read_loop():
+                                    event.value = event2.value
+                                    break
+                        break
         except OSError:
             if controller_found == 1:
                     os.system("notify-send --hint int:transient:1 -i info 'Controle desligado'")
@@ -181,6 +187,10 @@ if __name__ == '__main__':
                     exit(0)
         except NameError:
             log("O controle nao foi encontrado")
-            os.system("nnotify-send --hint int:transient:1 -i info 'O controle não foi encontrado'")
+            os.system("notify-send --hint int:transient:1 -i info 'O controle não foi encontrado'")
             log("O controle não foi encontrado")
             exit(1)
+        except dbus.exceptions.DBusException:
+            log("Nenhum Player em execução foi encontrado")
+            os.system("%s do_not_update &" % command)
+            main()
