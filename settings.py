@@ -20,7 +20,7 @@ config = {
         }
     },
     'player':{
-        'background-color':[27,40,56, .95],
+        'background-color':[27,40,56, .95], #rgba
         'window':{
                 'position':{
                     'x':15,
@@ -34,7 +34,7 @@ config = {
     },
     'notification':{
         'keys':[310,311],
-        'timeout':5
+        'timeout':5 #tempo em segundos
     },
-    'scan-timeout': .1 #tempo para fazer a leitura dos atalhos do controle 
+    'scan-timeout': 0.1 #tempo para fazer a leitura dos atalhos do controle | tempo em milisegundos
 }

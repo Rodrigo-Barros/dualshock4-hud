@@ -13,9 +13,6 @@ from datetime import datetime
 
 script_path = sys.path[0]
 
-def log(msg):
-    os.system("echo %s DEBUG: %s >> %s/log" % (datetime.now().strftime('%T'), msg, sys.path[0] ))
-
 class Window(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self,Gtk.WindowType.POPUP)
@@ -92,7 +89,7 @@ class Window(Gtk.Window):
                 return "%s - %s" % (artist,music)
             elif dbus.player_props["PlaybackStatus"] == "Paused":
                 self.play_pause_icon=self.set_image("%s/icons/pause.png" % script_path,130,130)
-                return "Pausado"
+                return "%s - %s" % (artist,music)
         except AttributeError:
             self.play_pause_icon=self.set_image("%s/icons/pause.png" % script_path,130,130)
             self.art_album = self.set_image("%s/icons/no-media.png" % script_path,112,112)
