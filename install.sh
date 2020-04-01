@@ -16,9 +16,9 @@ function install_rule(){
 	sudo cp "01-baterry_hud.rules" "/etc/udev/rules.d/01-baterry_hud.rules"
 	sudo udevadm control --reload-rules
 	echo "Desabilitando o Bluetooth ..."
-	echo power off | bluetoothctl
+	echo power off | bluetoothctl >> /dev/null
 	echo "Ligando o Bluetooth novamente ..."
-	echo power on | bluetoothctl
+	echo power on | bluetoothctl >> /dev/null
 	echo "Instalação concluída com sucesso"
 	echo "Para começar a utilizar é necessário apenas conectar o seu controle via Bluetooth"
 }
