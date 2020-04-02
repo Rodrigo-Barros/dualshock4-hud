@@ -1,3 +1,14 @@
 Talvez uma janela usando o cairo para o player de músicas?
 Juntar o arquivo de keys-extend com o ds4batter-hud.py OK
 Verificar  a url da arte de capa antes de baixar OK
+
+ - Refatorar o código
+ - Capa de arte para o Spotify e outros players
+ - Procurar um solução para não enviar comandos para o jogo enquanto o HUD estiver ativo.
+ - Exibir um painel com controle de volume para os sons do sistema.
+ - Alterar como os parâmetros são para o script para usar metódos em vez disso.
+ - Não essenciais:
+    - Adicionar uma opção para tirar screenshots?
+    - Adicionar uma opção para transmitir lives pelo OBS usando um perfil já existente?
+    - Adicionar uma opção para trocar de cenas pelo OBS?
+    - Adicionar um controle de troca de aplicações alt+tab?
